@@ -1,5 +1,6 @@
 import sklearn as sk
 import pandas as pd
+from matplotlib import pyplot as plt
 from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
@@ -44,7 +45,7 @@ for col in pre_proc_db:
 
 X_train, X_test, y_train, y_test = sk.model_selection.train_test_split(pre_proc_db.drop(columns=['final_label']),
                                                                        pre_proc_db['final_label'],
-                                                                       test_size=0.20,
+                                                                       test_size=0.30,
                                                                        random_state=42)
 
 rfc = RandomForestClassifier(n_estimators=1,
@@ -64,18 +65,6 @@ print(rfc.feature_importances_)
 
 rules = []
 
-#for i, tree in enumerate(rfc.estimators_):
-#    tree_struct = tree.tree_
-#    print(tree_struct.children_left[0])
-#    print(tree_struct.children_right[0])
-#    print(type(tree))
-    #fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), dpi=800)
-    #sk.tree.plot_tree(tree,
-    #               feature_names=train_db.columns,
-    #               filled=True)
-    #fig.savefig("rf_individualtree"+ str(i) + ".png")
-
-
 # The following code is partly taken from the sklearn documentation and modified to our needs
 
 node_indicator = rfc.estimators_[0].decision_path(X_test)
@@ -84,13 +73,16 @@ leaf_id = rfc.apply(X_test)
 feature = rfc.estimators_[0].tree_.feature
 threshold = rfc.estimators_[0].tree_.threshold
 
-#print(node_indicator)
+# print(node_indicator)
+
+#Be aware, removing this may break the code
+X_test = X_test.reset_index()
 
 sample_id = 0
 # obtain ids of the nodes `sample_id` goes through, i.e., row `sample_id`
 node_index = node_indicator.indices[
-    node_indicator.indptr[sample_id] : node_indicator.indptr[sample_id + 1]
-]
+             node_indicator.indptr[sample_id]: node_indicator.indptr[sample_id + 1]
+             ]
 
 print("Rules used to predict sample {id}:\n".format(id=sample_id))
 for node_id in node_index:
@@ -98,8 +90,15 @@ for node_id in node_index:
     if leaf_id[sample_id] == node_id:
         continue
 
+    # print("DEBUG" + str(sample_id))
+    # print("DEBUG" + str(node_id))
+    # print("DEBUG" + str(feature))
+    # print(train_db.columns)
+    # print("DEBUG TYPE" + str(type(feature)))
+    # print("DEBUG SIZE" + str(X_test.shape))
+
     # check if value of the split feature for sample 0 is below threshold
-    if X_test[sample_id, feature[node_id]] <= threshold[node_id]:
+    if X_test.loc[sample_id][X_test.columns[feature[node_id]]] <= threshold[node_id]:
         threshold_sign = "<="
     else:
         threshold_sign = ">"
@@ -109,15 +108,27 @@ for node_id in node_index:
         "{inequality} {threshold})".format(
             node=node_id,
             sample=sample_id,
-            feature=feature[node_id],
-            value=X_test[sample_id, feature[node_id]],
+            feature=train_db.columns[feature[node_id]],
+            value= X_test.loc[sample_id][train_db.columns[feature[node_id]]],
             inequality=threshold_sign,
             threshold=threshold[node_id],
         )
     )
 
-
-#for data_point in y_test.rows:
-    # This may need to be expanded to multiple trees in the future
+# for data_point in y_test.rows:
+# This may need to be expanded to multiple trees in the future
 #    tree = rfc.estimators_
 #    tree.decision_path(data_point)
+
+# for i, tree in enumerate(rfc.estimators_):
+#    tree_struct = tree.tree_
+#    print(tree_struct.children_left[0])
+#    print(tree_struct.children_right[0])
+#    print(type(tree))
+
+fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), dpi=800)
+sk.tree.plot_tree(rfc.estimators_[0],
+                  node_ids=True,
+                  feature_names=train_db.columns,
+                  filled=True)
+fig.savefig("rf_individualtree_debug" + str(1337) + ".png")
