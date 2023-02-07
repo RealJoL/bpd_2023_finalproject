@@ -1,0 +1,15 @@
+,TotPkts_greater,TotPkts_threshold,Dir_greater,Dir_threshold,Dir_greater_nonenc,Dir_threshold_nonenc,Sport_greater,Sport_threshold,Proto_greater,Proto_threshold,Proto_greater_nonenc,Proto_threshold_nonenc,dTos_greater,dTos_threshold,Dport_greater,Dport_threshold,TotBytes_greater,TotBytes_threshold
+0,False,1065.5,False,127.5,False,,True,1.0,False,65849.5,False,,,,,,,
+1,False,1065.5,False,128.5,False,,,,,,,,,,,,,
+2,False,1065.5,False,128.5,False,,,,,,,,False,6.5,True,6.0,,
+3,False,1065.5,False,127.5,False,,True,0.5,,,,,,,True,25.5,,
+4,True,1065.5,False,127.5,False,,True,0.5,,,,,,,,,,
+5,False,1065.5,False,127.5,False,,True,0.5,,,,,,,,,,
+6,False,1065.5,False,128.5,False,,,,,,,,False,6.5,False,6.0,,
+7,False,1065.5,False,128.5,False,,,,,,,,False,6.5,False,142.5,,
+8,False,1065.5,False,127.5,False,,True,1.0,,,,,,,,,False,2072221.5
+9,False,1065.5,False,127.5,False,,False,1.0,,,,,,,,,False,2072221.5
+10,True,1065.5,False,127.5,False,,True,0.5,,,,,,,True,25.5,,
+11,False,1065.5,False,127.5,False,,False,1.0,False,65849.5,False,,,,,,,
+12,True,1065.5,False,127.5,False,,True,1.0,,,,,,,,,True,2072221.5
+13,True,1065.5,False,127.5,False,,True,1.0,False,65849.5,False,,,,,,,
