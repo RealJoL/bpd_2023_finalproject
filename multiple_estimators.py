@@ -6,14 +6,22 @@ from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 
-# TODO Maybe extend to further data sets
+# This data is generating our ruleset and gives an encoding in case String data fields are used.
+# String data set may not be the best option, as discussed in our paper.
+
+# Reading df
+
 db = pd.read_csv("capture20110818-2.binetflow")
 
+# Parametrizable output
 output_file = "./output/rulenc/nostring/"
 columns_to_drop = ["SrcAddr", "DstAddr", "StartTime", "Label", "Dir", "Proto"]
 
+# Here we filter by label, separating our data set to give it labels
 db['Label'].unique()
 malicious = list(filter(lambda x: "Botnet" in x, db['Label'].unique()))
+
+# Set binary label for db
 
 all_bad_db = db[db["Label"].isin(malicious)]
 all_good_db = db[~ db["Label"].isin(malicious)]
@@ -22,10 +30,6 @@ all_good_db = db[~ db["Label"].isin(malicious)]
 
 all_good_db = all_good_db.assign(final_label=0)
 all_bad_db = all_bad_db.assign(final_label=1)
-
-# Remove too specific field like IP addresses
-
-print(all_good_db.columns)
 
 all_good_db = all_good_db.drop(columns=columns_to_drop)
 all_bad_db = all_bad_db.drop(columns=columns_to_drop)
@@ -39,7 +43,7 @@ pre_proc_db['Dport'] = pre_proc_db['Dport'].apply(lambda x: int(int(x, 16)))
 
 pre_proc_db[['State']] = pre_proc_db[['State']].fillna(value="NULL")
 
-# Encode labels to numeric
+# Encode labels to numeric values if string fields are present
 label_encs = {}
 le_encodings = {}
 for col in pre_proc_db:
@@ -54,6 +58,7 @@ for col in pre_proc_db:
         le_encodings[col] = le_dict
         label_encs[col] = le
 
+# Fill empty fields with 0
 train_db = pd.DataFrame(pre_proc_db)
 for col in pre_proc_db:
     if not is_numeric_dtype(pre_proc_db[col]):
@@ -61,11 +66,13 @@ for col in pre_proc_db:
     else:
         train_db[col] = pre_proc_db[col].fillna(0)
 
+# Split data into test and train
 X_train, X_test, y_train, y_test = sk.model_selection.train_test_split(pre_proc_db.drop(columns=['final_label']),
                                                                        pre_proc_db['final_label'],
                                                                        test_size=0.30,
                                                                        random_state=42)
 
+# Parametrize model
 rfc = RandomForestClassifier(n_estimators=3,
                              max_depth=4,
                              bootstrap=True,
@@ -73,17 +80,20 @@ rfc = RandomForestClassifier(n_estimators=3,
                              verbose=1,
                              class_weight='balanced')
 
+# Fit model to data
 rfc.fit(X_train, y_train)
 
+# Predict test data
 val_y = rfc.predict(X_test)
 
 print("Scoring: " + str(sk.metrics.mean_squared_error(val_y, y_test)))
 
 print(rfc.feature_importances_)
 
-# The following code is partly taken from the sklearn documentation and modified to fit our needs
+# The following code is partly taken from the sklearn documentation and strongly modified to fit our needs
 # https://scikit-learn.org/stable/auto_examples/tree/plot_unveil_tree_structure.html#sphx-glr-auto-examples-tree-plot-unveil-tree-structure-py
 
+# List of rules later converted to df
 list_of_rules = []
 
 print("ESTIMATORS " + str(rfc.estimators_))
@@ -92,18 +102,17 @@ for i, estimator in enumerate(rfc.estimators_):
     node_indicator = estimator.decision_path(X_test)
     leaf_ids = rfc.apply(X_test)
     print(leaf_ids)
-    # leaf_id = leaf_ids[i]
 
+    # Going through the estimators tree features
     available_features = estimator.tree_.feature
     threshold = estimator.tree_.threshold
     children_left = estimator.tree_.children_left
     children_right = estimator.tree_.children_right
 
-    # print(node_indicator)
-
     # Be aware, removing this may break the code
     X_test_post = X_test.reset_index()
 
+    # Traversing the tree using the samples from the data set
     for j, sample_id in enumerate(X_test_post.index):
         leaf_id = leaf_ids[j, i]
         current_rule_set = []
@@ -132,6 +141,7 @@ for i, estimator in enumerate(rfc.estimators_):
                 threshold_sign = ">"
                 greater = True
 
+            # New rule set
             new_rule = {
                 "greater": greater,
                 "threshold": threshold_value,
@@ -151,6 +161,8 @@ for ruleset in list_of_rules:
 
 rule_df = pd.DataFrame()
 
+# Saving the rule set
+# If the rule is composed of encoded thresholds, these are converted to their original meanign
 for i, ruleset in enumerate(list_of_rules):
     for rule in ruleset:
         feature = rule['feature']
@@ -169,6 +181,7 @@ for i, ruleset in enumerate(list_of_rules):
 
             rule_df.at[i, str(feature) + '_threshold_nonenc'] = found_thr
 
+# Date and time to compare with previous experiments
 file_time = str("d"
                 + str(datetime.now().day)
                 + "-"
@@ -184,6 +197,7 @@ rule_df.to_csv(output_file
 print(rule_df)
 print(le_encodings)
 
+# Saving the rule encodings for later use
 with open(output_file + 'encoding_' + file_time + '.json', 'w+') as f:
     json.dump(le_encodings, f, indent=4)
 
