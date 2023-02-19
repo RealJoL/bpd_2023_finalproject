@@ -6,11 +6,17 @@ from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 
+'''This script is the first fundamental approach to our project. Here, a single estimator tree is 
+trained and all encoding and rule extraction is done as described in the paper.
+
+If you want to modify input or output, you must change paths accordingly, but running this script alone 
+will create a timestamped output with the CTU-13 data set used by us.'''
+
 # This data is generating our ruleset and gives an encoding in case String data fields are used.
 # String data set may not be the best option, as discussed in our paper.
 
 # Reading df
-db = pd.read_csv("capture20110818-2.binetflow")
+db = pd.read_csv("./capture20110818-2.binetflow")
 
 # Here we filter by label, separating our data set to give it labels
 db['Label'].unique()

@@ -6,6 +6,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import json
 
+'''
+This file is the sister file of port_analysis.ipynb. It creates plots 
+for the analysis of port distribution using the generated rule set.
+It can be executed and will generate 4 plots according to the
+input file paths given in string form below.
+'''
 
 json_file_path = "./output/rulenc/nostring/encoding_d13-154428.json"
 figure_out_path = "./output/figures/multi/nostring/"
@@ -13,8 +19,8 @@ figure_out_path = "./output/figures/multi/nostring/"
 with open(json_file_path, 'r') as j:
     contents = json.loads(j.read())
 
-ruleset_df = pd.read_csv("./output/rulenc/nostring/ruleset_d13-154428.csv", index_col=0)
-flow_df = pd.read_csv("capture20110818-2.binetflow")
+ruleset_df = pd.read_csv("../output/rulenc/nostring/ruleset_d13-154428.csv", index_col=0)
+flow_df = pd.read_csv("../capture20110818-2.binetflow")
 
 flow_df['Label'].unique()
 malicious = list(filter(lambda x: "Botnet" in x, flow_df['Label'].unique()))

@@ -6,15 +6,24 @@ from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 
+'''This script, much like main.py will train a model with the specific encoding 
+and will return a rule set. Here, the difference lies in multiple estimators being used in an ensemble 
+method.
+
+If you want to modify input or output, you must change paths accordingly, but running this script alone 
+will create a timestamped output with the CTU-13 data set used by us.
+
+Warning: On some versions of sklearn, the index column may need to be removed additionally.'''
+
 # This data is generating our ruleset and gives an encoding in case String data fields are used.
 # String data set may not be the best option, as discussed in our paper.
 
 # Reading df
 
-db = pd.read_csv("capture20110818-2.binetflow")
+db = pd.read_csv("../capture20110818-2.binetflow")
 
 # Parametrizable output
-output_file = "./output/rulenc/nostring/"
+output_file = "../output/rulenc/nostring/"
 columns_to_drop = ["SrcAddr", "DstAddr", "StartTime", "Label", "Dir", "Proto"]
 
 # Here we filter by label, separating our data set to give it labels
